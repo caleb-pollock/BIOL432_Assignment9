@@ -1,0 +1,66 @@
+---
+title: "A9_Pollock_Caleb"
+output: html_document
+date: "2023-03-13"
+---
+
+https://github.com/caleb-pollock/BIOL432_Assignment9.git
+
+```{r}
+library("doParallel")
+library("parallel")
+library("foreach")
+```
+Run the detect cores function
+
+```{r}
+# Find the number of cores
+numCores <- detectCores()
+print(numCores)
+```
+
+There are 8 cores in my system (although I'm pretty sure its 4 cores with 8 threads)
+
+```{r}
+timeStart <- Sys.time() # Start
+
+for (i in 1:4000){
+  x<-rnorm(100000, mean = 10, sd = 3) # Code to run loop
+  mean(x)                           
+}
+
+timeEnd <- Sys.time() # End
+
+timeElapsed <- timeEnd-timeStart # Code to tell how much time has been run 
+cat("It took",timeElapsed,"seconds to run the loop in series")
+```
+
+```{r}
+timePredict <- timeElapsed/(numCores-1) # 8-1= 7 cores in the computer
+cat("It will take", timePredict,"seconds to run in parallel")
+```
+
+```{r}
+timeStartPar <- Sys.time() # Start timer
+
+Cores <- makeCluster(detectCores()) # Code from assignment description  
+
+registerDoParallel(Cores) # Registers cluster
+
+foreach(i=1:4000, .combine = rbind) %dopar% {
+  x <- rnorm(100000, mean = 10, sd = 3)     #Run Loop
+  mean(x)
+}
+
+stopCluster(Cores) # Stops cluster
+
+timeEndPar <- Sys.time() # End timer
+
+
+timeElapsedPar <- timeEndPar-timeStartPar # Calculate difference
+cat("It took",timeElapsedPar,"seconds for the loop to run in parallel")
+```
+```{r}
+cat("Parallel processing can complete the task in",timeElapsedPar,"seconds, whereas sequential processing can complete the task in",timeElapsed,"seconds, and the theoretical runtime is",timePredict,"seconds.")
+```
+The theoretical runtime is much faster than the actual parallel processing runtime. This is likely due to time required to run the code itself to produce the for loop, for example combining the results, as well as memory constraints. 
